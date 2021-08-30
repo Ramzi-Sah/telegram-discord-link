@@ -22,7 +22,7 @@ class DiscordBotThread(threading.Thread):
 
     async def main(self):
         try:
-            await self.client.start(self.TOKEN, bot=False)
+            await self.client.start(self.TOKEN, bot=True)
         except Exception as e:
             print("[ERROR] couldn't login on discord: " + str(e))
     
