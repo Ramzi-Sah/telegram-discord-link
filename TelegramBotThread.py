@@ -1,4 +1,4 @@
-import threading, asyncio
+import os, threading, asyncio
 from telethon import TelegramClient, events
 
 class TelegramBotThread(threading.Thread):
@@ -48,7 +48,16 @@ class TelegramBotThread(threading.Thread):
         async def NewMessage(event):
             try:
                 if event.photo:
-                    path = await event.download_media(".\\images")
+                    # create file
+                    file_path = "images/"
+                    directory = os.path.dirname(file_path)
+
+                    try:
+                        os.stat(directory)
+                    except:
+                        os.mkdir(directory)
+                    
+                    path = await event.download_media(file_path)
                     print('File saved to', path)
 
                     # send to discord bot thread

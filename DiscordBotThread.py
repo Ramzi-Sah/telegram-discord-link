@@ -22,7 +22,7 @@ class DiscordBotThread(threading.Thread):
 
     async def main(self):
         try:
-            await self.client.start(self.TOKEN, bot=True)
+            await self.client.start(self.TOKEN, bot=False)
         except Exception as e:
             print("[ERROR] couldn't login on discord: " + str(e))
     
@@ -49,12 +49,12 @@ class DiscordBotThread(threading.Thread):
             self.run = False
         else:
             print('########################################################')
-
         
+
         # wait for telegram thread data
         while self.run:
             data = self.data.get()
-            data["value"] += " @everyone"
+            # data["value"] += " @everyone"
 
             try:
                 # send message to discord channel
