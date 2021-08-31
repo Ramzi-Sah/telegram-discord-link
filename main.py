@@ -12,8 +12,8 @@ DISCORD_CHANNEL = 0
 
 ########################################################
 # for threads communication
-import queue
-data = queue.Queue()
+from threadCommunication import nonBlockingQueue
+data = nonBlockingQueue(200)
 
 ########################################################
 # start the telegram bot thread

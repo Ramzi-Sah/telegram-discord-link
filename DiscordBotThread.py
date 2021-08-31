@@ -22,13 +22,13 @@ class DiscordBotThread(threading.Thread):
 
     async def main(self):
         try:
-            await self.client.start(self.TOKEN, bot=False)
+            await self.client.start(self.TOKEN, bot=True)
         except Exception as e:
             print("[ERROR] couldn't login on discord: " + str(e))
     
     async def main_loop(self):
         await self.client.wait_until_ready()
-                
+        
         # check if telegram thread is ok
         data = self.data.get()
 
@@ -49,11 +49,10 @@ class DiscordBotThread(threading.Thread):
             self.run = False
         else:
             print('########################################################')
-        
 
         # wait for telegram thread data
         while self.run:
-            data = self.data.get()
+            data = await self.data.aget()
             # data["value"] += " @everyone"
 
             try:

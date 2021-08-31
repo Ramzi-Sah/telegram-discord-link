@@ -70,7 +70,12 @@ class TelegramBotThread(threading.Thread):
                     )
                 else:
                     # send to discord bot thread
-                    self.data.put({"type":"text", "value": str(event.text)})
+                    self.data.put(
+                        {
+                            "type":"text", 
+                            "value": str(event.text)
+                        }
+                    )
 
             except Exception as e:
                 print("Error on Telegram message: " + str(e))
