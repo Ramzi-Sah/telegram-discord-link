@@ -40,7 +40,7 @@ class DiscordBotThread(threading.Thread):
 
         self.data.task_done()
 
-        await self.client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="Make me rich"))
+        await self.client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="make us rich."))
         
         # get discord channel
         channel = self.client.get_channel(self.CHANNEL)
@@ -56,24 +56,84 @@ class DiscordBotThread(threading.Thread):
             # data["value"] += " @everyone"
 
             try:
-                # send message to discord channel
-                if data["type"] == "text":
-                    embed = discord.Embed(description=data["value"], color=discord.Color.blue())
-                    await channel.send(embed=embed)
+                type = data["type"].split("_")
 
-                elif data["type"] == "image, text":
-                    filename = "from_telegram." + data["path"].split(".")[-1]
-                    file = discord.File(data["path"], filename=filename)
+                # handle message
+                if type[0] == "MESSAGE":
+                    # new message
+                    if type[1] == "NEW":
+                        # text message
+                        if type[2] == "TEXT":
+                            # create embed
+                            embed = discord.Embed(description=data["value"], color=discord.Color.blue())
+                            embed.set_footer(text="# " + data["msg_id"])
 
-                    embed = discord.Embed(description=data["value"], color=discord.Color.blue())
-                    embed.set_image(url="attachment://" + filename)
+                            # send the message
+                            await channel.send(embed=embed)
 
-                    await channel.send(embed=embed, file=file)
-                
-                print("message forwarded successfully.")
+                        # text & image message
+                        elif type[2]== "TEXTIMAGE":
+                            # create discord file
+                            filename = "from_telegram." + data["path"].split(".")[-1]
+                            file = discord.File(data["path"], filename=filename)
+
+                            # create embed
+                            embed = discord.Embed(description=data["value"], color=discord.Color.blue())
+                            embed.set_image(url="attachment://" + filename)
+                            embed.set_footer(text="# " + data["msg_id"])
+
+                            # send the message
+                            await channel.send(embed=embed, file=file)
+                        
+                        print("message #" + data["msg_id"] + " forwarded successfully.")
+                    
+                    # edited message
+                    elif type[1] == "EDITED":
+                        # get the last 20 messages
+                        async for message in channel.history(limit=20):
+                            # check if message has an embed
+                            if len(message.embeds) == 0: continue
+
+                            # get the first message's embed
+                            embed = message.embeds[0]
+
+                            # check if message has id
+                            if embed.footer.text == discord.Embed.Empty : continue
+                            if len(embed.footer.text.split()) <= 1: continue
+
+                            # get message id
+                            msgID = embed.footer.text.split()[1]
+                            if msgID == data["msg_id"]:
+                                # new message
+                                if type[2] == "TEXT":
+                                    # create embed
+                                    embed = discord.Embed(description=data["value"], color=discord.Color.blue())
+                                    embed.set_footer(text="# " + data["msg_id"])
+
+                                    # update the message
+                                    await message.edit(embed=embed)
+
+                                # text & image message
+                                elif type[2]== "TEXTIMAGE":
+                                    # create discord file
+                                    filename = "from_telegram." + data["path"].split(".")[-1]
+                                    file = discord.File(data["path"], filename=filename)
+
+                                    # create embed
+                                    embed = discord.Embed(description=data["value"], color=discord.Color.blue())
+                                    embed.set_image(url="attachment://" + filename)
+                                    embed.set_footer(text="# " + data["msg_id"])
+                                    
+                                    # update the message
+                                    await message.edit(embed=embed)
+
+                                print("message #" + data["msg_id"] + " edited successfully.")
+                                break
+
+
 
             except Exception as e:
-                print("Error sending discord message: " + str(e))
+                print("[ERROR] could not forward the discord message: " + str(e))
 
             # task_done signal
             self.data.task_done()

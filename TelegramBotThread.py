@@ -35,15 +35,8 @@ class TelegramBotThread(threading.Thread):
 
             entity = await client.get_entity(self.CHANNEL)
             print("listening to channel: \"" + entity.title + "\".")
-
-            # await client.send_message(self.CHANNEL, 'hello world')
-            
-            """
-            async for message in client.iter_messages(self.CHANNEL):
-                self.data.put(str(message.text))
-            """
         
-        # respond to messages
+        # handle NewMessage event
         @client.on(events.NewMessage(chats=self.CHANNEL))
         async def NewMessage(event):
             try:
@@ -63,8 +56,9 @@ class TelegramBotThread(threading.Thread):
                     # send to discord bot thread
                     self.data.put(
                         {
-                            "type":"image, text", 
-                            "value": str(event.text), 
+                            "type":"MESSAGE_NEW_TEXTIMAGE",
+                            "msg_id": str(event.id),
+                            "value": str(event.text),
                             "path": str(path)
                         }
                     )
@@ -72,14 +66,53 @@ class TelegramBotThread(threading.Thread):
                     # send to discord bot thread
                     self.data.put(
                         {
-                            "type":"text", 
+                            "type":"MESSAGE_NEW_TEXT", 
+                            "msg_id": str(event.id),
                             "value": str(event.text)
                         }
                     )
-
             except Exception as e:
-                print("Error on Telegram message: " + str(e))
-            
+                print("[ERROR] on new Telegram message: " + str(e))
+
+        # handle MessageEdited event
+        @client.on(events.MessageEdited)
+        async def MessageEdited(event):
+            try:
+                if event.photo:
+                    # create file
+                    file_path = "images/"
+                    directory = os.path.dirname(file_path)
+
+                    try:
+                        os.stat(directory)
+                    except:
+                        os.mkdir(directory)
+                    
+                    path = await event.download_media(file_path)
+                    print('File saved to', path)
+
+                    # send to discord bot thread
+                    self.data.put(
+                        {
+                            "type":"MESSAGE_EDITED_TEXTIMAGE",
+                            "msg_id": str(event.id),
+                            "value": str(event.text),
+                            "path": str(path)
+                        }
+                    )
+                else:
+                    # send to discord bot thread
+                    self.data.put(
+                        {
+                            "type":"MESSAGE_EDITED_TEXT", 
+                            "msg_id": str(event.id),
+                            "value": str(event.text)
+                        }
+                    )
+            except Exception as e:
+                print("[ERROR] on edit Telegram message: " + str(e))
+
+
         await client.start()
         await client.run_until_disconnected()
 
