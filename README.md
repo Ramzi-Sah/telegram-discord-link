@@ -11,5 +11,5 @@ pip install discord.py
 * get your telegram api app id and hash from here: https://my.telegram.org/
 * create a discord app and get your discord bot token from here: https://discord.com/developers/applications
 * set your configs in main.py
-* start with python main.py
+* start with ```python main.py```
 
