@@ -1,5 +1,5 @@
 # telegram-discord-link
-link telegram to discord
+link a telegram channel to discord
 
 ## setup
 * you'll need python 3.7 or higher
