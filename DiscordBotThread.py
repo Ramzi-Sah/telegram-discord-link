@@ -152,7 +152,12 @@ class DiscordBotThread(threading.Thread):
                                 if type[2] == "TEXT":
                                     # create embed
                                     embed = discord.Embed(description=data["value"], color=discord.Color.blue())
-                                    embed.set_footer(text="# " + data["msg_id"])
+
+                                    # if not a reply
+                                    if int(data["reply_id"]) < 0:
+                                        embed.set_footer(text="# " + data["msg_id"])
+                                    else:
+                                        embed.set_footer(text="# " + data["msg_id"] + " replyed to # " + data["reply_id"])
 
                                     # update the message
                                     await message.edit(embed=embed)
@@ -166,7 +171,12 @@ class DiscordBotThread(threading.Thread):
                                     # create embed
                                     embed = discord.Embed(description=data["value"], color=discord.Color.blue())
                                     embed.set_image(url="attachment://" + filename)
-                                    embed.set_footer(text="# " + data["msg_id"])
+                                    
+                                    # if not a reply
+                                    if int(data["reply_id"]) < 0:
+                                        embed.set_footer(text="# " + data["msg_id"])
+                                    else:
+                                        embed.set_footer(text="# " + data["msg_id"] + " replyed to # " + data["reply_id"])
                                     
                                     # update the message
                                     await message.edit(embed=embed)
