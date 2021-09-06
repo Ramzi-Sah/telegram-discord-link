@@ -62,35 +62,79 @@ class DiscordBotThread(threading.Thread):
                 if type[0] == "MESSAGE":
                     # new message
                     if type[1] == "NEW":
-                        # text message
-                        if type[2] == "TEXT":
-                            # create embed
-                            embed = discord.Embed(description=data["value"], color=discord.Color.blue())
-                            embed.set_footer(text="# " + data["msg_id"])
 
-                            # send the message
-                            await channel.send(embed=embed)
+                        # if is not a reply
+                        if int(data["reply_id"]) < 0:
+                            # text message
+                            if type[2] == "TEXT":
+                                # create embed
+                                embed = discord.Embed(description=data["value"], color=discord.Color.blue())
+                                embed.set_footer(text="# " + data["msg_id"])
 
-                        # text & image message
-                        elif type[2]== "TEXTIMAGE":
-                            # create discord file
-                            filename = "from_telegram." + data["path"].split(".")[-1]
-                            file = discord.File(data["path"], filename=filename)
+                                # send the message
+                                await channel.send(embed=embed)
 
-                            # create embed
-                            embed = discord.Embed(description=data["value"], color=discord.Color.blue())
-                            embed.set_image(url="attachment://" + filename)
-                            embed.set_footer(text="# " + data["msg_id"])
+                            # text & image message
+                            elif type[2]== "TEXTIMAGE":
+                                # create discord file
+                                filename = "from_telegram." + data["path"].split(".")[-1]
+                                file = discord.File(data["path"], filename=filename)
 
-                            # send the message
-                            await channel.send(embed=embed, file=file)
-                        
-                        print("message #" + data["msg_id"] + " forwarded successfully.")
-                    
+                                # create embed
+                                embed = discord.Embed(description=data["value"], color=discord.Color.blue())
+                                embed.set_image(url="attachment://" + filename)
+                                embed.set_footer(text="# " + data["msg_id"])
+
+                                # send the message
+                                await channel.send(embed=embed, file=file)
+                            
+                            print("message #" + data["msg_id"] + " forwarded successfully.")
+                        else:
+                            # get the last 20 messages
+                            async for message in channel.history(limit=50):
+                                # check if message has an embed
+                                if len(message.embeds) == 0: continue
+
+                                # get the first message's embed
+                                embed = message.embeds[0]
+
+                                # check if message has id
+                                if embed.footer.text == discord.Embed.Empty : continue
+                                if len(embed.footer.text.split()) <= 1: continue
+
+                                # get message id
+                                msgID = embed.footer.text.split()[1]
+                                if msgID == data["reply_id"]:
+                                    # text message
+                                    if type[2] == "TEXT":
+                                        # create embed
+                                        embed = discord.Embed(description=data["value"], color=discord.Color.blue())
+                                        embed.set_footer(text="# " + data["msg_id"] + " replyed to # " + data["reply_id"])
+
+                                        # send the message
+                                        await message.reply(embed=embed)
+
+                                    # text & image message
+                                    elif type[2]== "TEXTIMAGE":
+                                        # create discord file
+                                        filename = "from_telegram." + data["path"].split(".")[-1]
+                                        file = discord.File(data["path"], filename=filename)
+
+                                        # create embed
+                                        embed = discord.Embed(description=data["value"], color=discord.Color.blue())
+                                        embed.set_image(url="attachment://" + filename)
+                                        embed.set_footer(text="# " + data["msg_id"] + " replyed to # " + data["reply_id"])
+
+                                        # send the message
+                                        await message.reply(embed=embed, file=file)
+                                    
+                                    print("replyed to message #" + data["reply_id"] + " with message #" + data["msg_id"] + " successfully.")
+
+
                     # edited message
                     elif type[1] == "EDITED":
                         # get the last 20 messages
-                        async for message in channel.history(limit=20):
+                        async for message in channel.history(limit=50):
                             # check if message has an embed
                             if len(message.embeds) == 0: continue
 
@@ -129,8 +173,6 @@ class DiscordBotThread(threading.Thread):
 
                                 print("message #" + data["msg_id"] + " edited successfully.")
                                 break
-
-
 
             except Exception as e:
                 print("[ERROR] could not forward the discord message: " + str(e))

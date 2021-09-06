@@ -40,6 +40,12 @@ class TelegramBotThread(threading.Thread):
         @client.on(events.NewMessage(chats=self.CHANNEL))
         async def NewMessage(event):
             try:
+                # if reply get reply id
+                reply_id = -1
+                if event.is_reply:
+                    reply = await event.get_reply_message()
+                    reply_id = reply.id
+
                 if event.photo:
                     # create file
                     file_path = "images/"
@@ -58,6 +64,7 @@ class TelegramBotThread(threading.Thread):
                         {
                             "type":"MESSAGE_NEW_TEXTIMAGE",
                             "msg_id": str(event.id),
+                            "reply_id": str(reply_id),
                             "value": str(event.text),
                             "path": str(path)
                         }
@@ -68,6 +75,7 @@ class TelegramBotThread(threading.Thread):
                         {
                             "type":"MESSAGE_NEW_TEXT", 
                             "msg_id": str(event.id),
+                            "reply_id": str(reply_id),
                             "value": str(event.text)
                         }
                     )
